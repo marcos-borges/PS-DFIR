@@ -7,20 +7,21 @@ param(
 
 $Array = @()
 
-schtasks /query /V /FO CSV | ConvertFrom-Csv | ForEach-Object {
+schtasks /query /V /FO CSV | ConvertFrom-Csv | Sort-Object -Unique -Property TaskName,"Task To Run" | ForEach-Object {
 	if ($PSBoundParameters.ContainsKey('File')) {
 		if ($_."Task to Run" -like ("*" + $File + "*")) {
 			$Output = "" | Select ComputerName,TaskName,TaskToRun
 			$Output.ComputerName = $env:computername | Select-Object
 			$Output.TaskName = $_.TaskName
 			$Output.TaskToRun = $_."Task to Run"
+			$Array += $Output
 		}
-    } else {
+	} else {
 		$Output = "" | Select ComputerName,TaskName,TaskToRun
 		$Output.ComputerName = $env:computername | Select-Object
 		$Output.TaskName = $_.TaskName
 		$Output.TaskToRun = $_."Task to Run"
-	}
-	$Array += $Output
+        $Array += $Output
+    }
 }
-$Array | Sort-Object -Unique -Property TaskName,TaskToRun | Format-Table -Wrap -AutoSize | Out-String
+$Array | Format-Table -Wrap -AutoSize | Out-String
